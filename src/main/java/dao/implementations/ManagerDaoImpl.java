@@ -2,145 +2,55 @@ package dao.implementations;
 
 import dao.interfaces.Dao;
 import entities.Manager;
-import sql.ConnectionPool;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceContext;
+import javax.persistence.PersistenceUnit;
+import java.util.List;
 
+@Repository
+@Transactional
 public class ManagerDaoImpl implements Dao<Manager, Long> {
     
-    private static final Logger LOGGER =
-            Logger.getLogger(ManagerDaoImpl.class.getName());
-    private final Optional<Connection> connection;
+    @PersistenceContext
+    private EntityManager entityManager;
     
     public ManagerDaoImpl() {
-        
-        this.connection = ConnectionPool.getConnection();
     }
     
     @Override
-    public Optional<Manager> get(Long id) {
+    public Manager get(Long id) {
         
-        String sql = "SELECT * FROM manager WHERE id=" + id;
-        return connection.flatMap(conn -> {
-            Optional<Manager> manager = Optional.empty();
-            
-            try (Statement statement = conn.createStatement();
-                 ResultSet resultSet = statement.executeQuery(sql)) {
-                
-                if (resultSet.next()) {
-                    String name = resultSet.getString("name");
-                    String password = resultSet.getString("password");
-                    
-                    manager = Optional.of(new Manager(id, name, password));
-                }
-            } catch (SQLException ex) {
-                LOGGER.log(Level.SEVERE, null, ex);
-            }
-            
-            return manager;
-        });
+        return entityManager.find(Manager.class, id);
     }
     
     @Override
-    public Collection<Manager> getAll() {
+    public List getAll() {
         
-        Collection<Manager> managers = new ArrayList<>();
-        String sql = "SELECT * FROM manager";
-        connection.ifPresent(conn -> {
-            try (Statement statement = conn.createStatement();
-                 ResultSet resultSet = statement.executeQuery(sql)) {
-                
-                while (resultSet.next()) {
-                    Long id = resultSet.getLong("id");
-                    String name = resultSet.getString("name");
-                    String password = resultSet.getString("password");
-                    
-                    Manager manager = new Manager(id, name, password);
-                    managers.add(manager);
-                }
-                
-            } catch (SQLException ex) {
-                LOGGER.log(Level.SEVERE, null, ex);
-            }
-        });
-        return managers;
+        return entityManager.createQuery("from manager").getResultList();
     }
     
     @Override
-    public Optional<Long> save(Manager manager) {
+    public void save(Manager manager) {
         
-        String sql = "INSERT INTO "
-                + "manager(name, password) "
-                + "VALUES(?, ?)";
-        
-        return connection.flatMap(conn -> {
-            Optional<Long> generatedId = Optional.empty();
-            
-            try (PreparedStatement statement =
-                         conn.prepareStatement(
-                                 sql,
-                                 Statement.RETURN_GENERATED_KEYS)) {
-                
-                statement.setString(1, manager.getName());
-                statement.setString(2, manager.getPassword());
-                
-                int numberOfInsertedRows = statement.executeUpdate();
-                
-                // Retrieve the auto-generated id
-                if (numberOfInsertedRows > 0) {
-                    try (ResultSet resultSet = statement.getGeneratedKeys()) {
-                        if (resultSet.next()) {
-                            generatedId = Optional.of(resultSet.getLong("id"));
-                        }
-                    }
-                }
-            } catch (SQLException ex) {
-                LOGGER.log(Level.SEVERE, null, ex);
-            }
-            return generatedId;
-        });
+        entityManager.persist(manager);
     }
     
     @Override
     public void update(Manager manager) {
         
-        Long id = manager.getId();
-        String sql = "UPDATE manager SET "
-                + "name=?, "
-                + "password=? "
-                + "WHERE id=" + id;
-        connection.ifPresent(conn -> {
-            try (PreparedStatement statement = conn.prepareStatement(sql)) {
-                statement.setString(1, manager.getName());
-                statement.setString(2, manager.getPassword());
-                statement.executeUpdate();
-                
-            } catch (SQLException ex) {
-                LOGGER.log(Level.SEVERE, null, ex);
-            }
-        });
+        entityManager.merge(manager);
         
     }
     
     @Override
     public void delete(Manager manager) {
         
-        String sql = "DELETE FROM manager WHERE id=?";
-        connection.ifPresent(conn -> {
-            try (PreparedStatement statement = conn.prepareStatement(sql)) {
-                statement.setLong(1, manager.getId());
-                statement.executeUpdate();
-                
-                
-            } catch (SQLException ex) {
-                LOGGER.log(Level.SEVERE, null, ex);
-            }
-        });
+        if(entityManager.contains(manager))
+            entityManager.remove(manager);
         
     }
 }
