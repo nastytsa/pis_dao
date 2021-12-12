@@ -1,6 +1,6 @@
-package dao.interfaces;
+package project.dao.interfaces;
 
-import entities.Feedback;
+import project.entities.Feedback;
 
 import java.util.Optional;
 

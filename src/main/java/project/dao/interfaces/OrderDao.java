@@ -1,6 +1,7 @@
-package dao.interfaces;
+package project.dao.interfaces;
 
-import entities.Order;
+
+import project.entities.Order;
 
 import java.util.Collection;
 

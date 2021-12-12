@@ -1,36 +1,38 @@
-package dao.implementations;
+package project.dao.implementations;
 
-import dao.interfaces.Dao;
-import entities.Manager;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+import project.dao.interfaces.Dao;
+import project.entities.Manager;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceContext;
-import javax.persistence.PersistenceUnit;
+import javax.persistence.TypedQuery;
+import javax.transaction.Transactional;
 import java.util.List;
 
 @Repository
 @Transactional
 public class ManagerDaoImpl implements Dao<Manager, Long> {
-    
+
     @PersistenceContext
     private EntityManager entityManager;
-    
-    public ManagerDaoImpl() {
-    }
     
     @Override
     public Manager get(Long id) {
         
         return entityManager.find(Manager.class, id);
     }
-    
+
+    @Override
+    public Manager getByName(String name) {
+        TypedQuery<Manager> query = entityManager.createQuery("SELECT m FROM Manager m WHERE m.name = :name", Manager.class).setParameter("name", name);
+        return query.getSingleResult();
+    }
+
     @Override
     public List getAll() {
         
-        return entityManager.createQuery("from manager").getResultList();
+        return entityManager.createQuery("select m from Manager m").getResultList();
     }
     
     @Override
@@ -51,6 +53,8 @@ public class ManagerDaoImpl implements Dao<Manager, Long> {
         
         if(entityManager.contains(manager))
             entityManager.remove(manager);
+        else
+            entityManager.remove(entityManager.merge(manager));
         
     }
 }

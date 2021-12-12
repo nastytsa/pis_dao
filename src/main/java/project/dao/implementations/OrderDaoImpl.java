@@ -1,4 +1,4 @@
-//package dao.implementations;
+package project.dao.implementations;//package dao.implementations;
 //
 //import dao.interfaces.Dao;
 //import dao.interfaces.OrderDao;

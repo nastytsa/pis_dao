@@ -1,4 +1,4 @@
-package entities;
+package project.entities;
 
 import lombok.*;
 
@@ -11,7 +11,7 @@ import javax.persistence.*;
 public class Feedback {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Getter
     @Setter
     private Long feedback_id;

@@ -1,6 +1,9 @@
-package entities;
+package project.entities;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.Locale;
@@ -10,7 +13,7 @@ import java.util.Locale;
 @ToString
 public class Master{
     @Id
-    @GeneratedValue( strategy= GenerationType.AUTO )
+    @GeneratedValue( strategy= GenerationType.IDENTITY )
     @Getter
     @Setter
     protected Long id;
